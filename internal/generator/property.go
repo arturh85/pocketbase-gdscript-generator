@@ -118,30 +118,30 @@ func (property InterfaceProperty) GetGdscriptProperty(generatorFlags *cmd.Genera
 func (property InterfaceProperty) getGdScriptType(flags propertyFlags) string {
 	switch property.Type {
 	case IptNumber:
-		return "number"
+		return "float"
 	case IptBoolean:
-		return "boolean"
+		return "bool"
 	case IptJson:
 		if property.Optional {
-			return "object"
+			return "Object"
 		} else {
-			return "object"
+			return "Object"
 		}
 	case IptEnum:
 		return strcase.ToCamel(fmt.Sprintf("%s_%s_%s", property.CollectionName, property.Name, "options"))
 	case IptRelation:
 		if flags.relationAsString {
-			return "string"
+			return "String"
 		}
 
 		relationTo, ok := property.Data.(string)
 		if !ok {
-			return "object"
+			return "Object"
 		} else {
 			return strcase.ToCamel(relationTo)
 		}
 	default:
-		return "string"
+		return "String"
 	}
 }
 
@@ -185,7 +185,7 @@ func (collection CollectionWithProperties) GetGdScriptInterface(generatorFlags *
 	}
 
 	if len(expandedRelations) > 0 {
-		// expandedRelations = append(expandedRelations, "    Dictionary[string, Variant]")
+		// expandedRelations = append(expandedRelations, "    Dictionary[String, Variant]")
 
 		expandedType := fmt.Sprintf("class %sExpanded:\n%s\n", strcase.ToCamel(collection.Collection.Name), strings.Join(expandedRelations, "\n"))
 
@@ -195,7 +195,7 @@ func (collection CollectionWithProperties) GetGdScriptInterface(generatorFlags *
 
 		properties = append([]string{expandedLine}, properties...)
 	} else {
-		expandedLine := "    var expand: Dictionary[string,Variant]"
+		expandedLine := "    var expand: Dictionary[String,Variant]"
 
 		properties = append([]string{expandedLine}, properties...)
 	}
