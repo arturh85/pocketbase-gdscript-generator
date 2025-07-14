@@ -167,6 +167,10 @@ func (property InterfaceProperty) getGdScriptName(generatorFlags *cmd.GeneratorF
 	return property.Name
 }
 
+func (collection CollectionWithProperties) GetGdScriptCollectionEntry(generatorFlags *cmd.GeneratorFlags) string {
+	return fmt.Sprintf("    var %s = \"%s\"", strcase.ToCamel(collection.Collection.Name), collection.Collection.Name)
+}
+
 func (collection CollectionWithProperties) GetGdScriptInterface(generatorFlags *cmd.GeneratorFlags) string {
 	properties := make([]string, len(collection.Properties))
 	var additionalTypes []string
