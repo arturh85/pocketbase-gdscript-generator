@@ -1,22 +1,23 @@
 package main
 
 import (
-	"github.com/Vogeslu/pocketbase-ts-generator/internal/cmd"
-	"github.com/Vogeslu/pocketbase-ts-generator/internal/core"
-	"github.com/Vogeslu/pocketbase-ts-generator/internal/credentials"
-	"github.com/Vogeslu/pocketbase-ts-generator/internal/forms"
-	"github.com/Vogeslu/pocketbase-ts-generator/internal/pocketbase_api"
+	"os"
+
+	"github.com/arturh85/pocketbase-gdscript-generator/internal/cmd"
+	"github.com/arturh85/pocketbase-gdscript-generator/internal/core"
+	"github.com/arturh85/pocketbase-gdscript-generator/internal/credentials"
+	"github.com/arturh85/pocketbase-gdscript-generator/internal/forms"
+	"github.com/arturh85/pocketbase-gdscript-generator/internal/pocketbase_api"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
-	rootCmd := cmd.GetGenerateTsCommand(false, func(cmd *cobra.Command, args []string, generatorFlags *cmd.GeneratorFlags) {
+	rootCmd := cmd.GetGenerateGdCommand(false, func(cmd *cobra.Command, args []string, generatorFlags *cmd.GeneratorFlags) {
 		if generatorFlags.DisableLogs {
 			zerolog.SetGlobalLevel(4)
 		} else {

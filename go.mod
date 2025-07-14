@@ -1,4 +1,4 @@
-module github.com/Vogeslu/pocketbase-ts-generator
+module github.com/arturh85/pocketbase-gdscript-generator
 
 go 1.23.4
 

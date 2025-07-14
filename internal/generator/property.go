@@ -2,10 +2,11 @@ package generator
 
 import (
 	"fmt"
-	"github.com/Vogeslu/pocketbase-ts-generator/internal/cmd"
-	"github.com/Vogeslu/pocketbase-ts-generator/internal/pocketbase_api"
-	"github.com/iancoleman/strcase"
 	"strings"
+
+	"github.com/arturh85/pocketbase-gdscript-generator/internal/cmd"
+	"github.com/arturh85/pocketbase-gdscript-generator/internal/pocketbase_api"
+	"github.com/iancoleman/strcase"
 )
 
 type InterfacePropertyType int
@@ -110,11 +111,11 @@ func (property InterfaceProperty) String() string {
 	return fmt.Sprintf("%s (%s)", property.Name, strings.Join(data, ", "))
 }
 
-func (property InterfaceProperty) GetTypescriptProperty(generatorFlags *cmd.GeneratorFlags, flags propertyFlags) string {
-	return fmt.Sprintf("%s: %s", property.getTypescriptName(generatorFlags, flags), property.getTypescriptTypeWithArray(flags))
+func (property InterfaceProperty) GetGdscriptProperty(generatorFlags *cmd.GeneratorFlags, flags propertyFlags) string {
+	return fmt.Sprintf("var %s: %s", property.getGdScriptName(generatorFlags, flags), property.getGdScriptTypeWithArray(flags))
 }
 
-func (property InterfaceProperty) getTypescriptType(flags propertyFlags) string {
+func (property InterfaceProperty) getGdScriptType(flags propertyFlags) string {
 	switch property.Type {
 	case IptNumber:
 		return "number"
@@ -122,7 +123,7 @@ func (property InterfaceProperty) getTypescriptType(flags propertyFlags) string 
 		return "boolean"
 	case IptJson:
 		if property.Optional {
-			return "object | null | \"\""
+			return "object"
 		} else {
 			return "object"
 		}
@@ -144,57 +145,57 @@ func (property InterfaceProperty) getTypescriptType(flags propertyFlags) string 
 	}
 }
 
-func (property InterfaceProperty) getTypescriptTypeWithArray(flags propertyFlags) string {
-	tsType := property.getTypescriptType(flags)
+func (property InterfaceProperty) getGdScriptTypeWithArray(flags propertyFlags) string {
+	tsType := property.getGdScriptType(flags)
 
 	if property.IsArray {
 		if property.Optional {
-			return fmt.Sprintf("%s[]", tsType)
+			return fmt.Sprintf("Array[%s]", tsType)
 		} else {
-			return fmt.Sprintf("[%s]", tsType)
+			return fmt.Sprintf("Array[%s]", tsType)
 		}
 	}
 
 	return tsType
 }
 
-func (property InterfaceProperty) getTypescriptName(generatorFlags *cmd.GeneratorFlags, flags propertyFlags) string {
+func (property InterfaceProperty) getGdScriptName(generatorFlags *cmd.GeneratorFlags, flags propertyFlags) string {
 	if property.Optional && generatorFlags.MakeNonRequiredOptional || flags.forceOptional {
-		return fmt.Sprintf("%s?", property.Name)
+		return fmt.Sprintf("%s", property.Name)
 	}
 
 	return property.Name
 }
 
-func (collection CollectionWithProperties) GetTypescriptInterface(generatorFlags *cmd.GeneratorFlags) string {
+func (collection CollectionWithProperties) GetGdScriptInterface(generatorFlags *cmd.GeneratorFlags) string {
 	properties := make([]string, len(collection.Properties))
 	var additionalTypes []string
 	var expandedRelations []string
 
 	for i, property := range collection.Properties {
-		properties[i] = fmt.Sprintf("    %s;", property.GetTypescriptProperty(generatorFlags, propertyFlags{forceOptional: false, relationAsString: true}))
+		properties[i] = fmt.Sprintf("    %s", property.GetGdscriptProperty(generatorFlags, propertyFlags{forceOptional: false, relationAsString: true}))
 
 		if property.Type == IptEnum {
-			additionalTypes = append(additionalTypes, property.getTypescriptEnum())
+			additionalTypes = append(additionalTypes, property.getGdscriptEnum())
 		}
 
 		if property.Type == IptRelation {
-			expandedRelations = append(expandedRelations, fmt.Sprintf("    %s;", property.GetTypescriptProperty(generatorFlags, propertyFlags{forceOptional: true, relationAsString: false})))
+			expandedRelations = append(expandedRelations, fmt.Sprintf("    %s", property.GetGdscriptProperty(generatorFlags, propertyFlags{forceOptional: true, relationAsString: false})))
 		}
 	}
 
 	if len(expandedRelations) > 0 {
-		expandedRelations = append(expandedRelations, "    [key: string]: unknown;")
+		// expandedRelations = append(expandedRelations, "    Dictionary[string, Variant]")
 
-		expandedType := fmt.Sprintf("export interface %sExpanded {\n%s\n}", strcase.ToCamel(collection.Collection.Name), strings.Join(expandedRelations, "\n"))
+		expandedType := fmt.Sprintf("class %sExpanded:\n%s\n", strcase.ToCamel(collection.Collection.Name), strings.Join(expandedRelations, "\n"))
 
 		additionalTypes = append(additionalTypes, expandedType)
 
-		expandedLine := fmt.Sprintf("    expand?: %sExpanded;", strcase.ToCamel(collection.Collection.Name))
+		expandedLine := fmt.Sprintf("    var expand: %sExpanded", strcase.ToCamel(collection.Collection.Name))
 
 		properties = append([]string{expandedLine}, properties...)
 	} else {
-		expandedLine := "    expand?: { [key: string]: unknown; };"
+		expandedLine := "    var expand: Dictionary[string,Variant]"
 
 		properties = append([]string{expandedLine}, properties...)
 	}
@@ -205,10 +206,10 @@ func (collection CollectionWithProperties) GetTypescriptInterface(generatorFlags
 		prefix += "\n\n"
 	}
 
-	return fmt.Sprintf("%sexport interface %s {\n%s\n}", prefix, strcase.ToCamel(collection.Collection.Name), strings.Join(properties, "\n"))
+	return fmt.Sprintf("%sclass %s:\n%s\n", prefix, strcase.ToCamel(collection.Collection.Name), strings.Join(properties, "\n"))
 }
 
-func (property InterfaceProperty) getTypescriptEnum() string {
+func (property InterfaceProperty) getGdscriptEnum() string {
 	if property.Type != IptEnum {
 		return ""
 	}
@@ -219,8 +220,8 @@ func (property InterfaceProperty) getTypescriptEnum() string {
 	enumList := make([]string, len(enumData))
 
 	for i, enum := range enumData {
-		enumList[i] = fmt.Sprintf("    %s = \"%s\"", strcase.ToCamel(enum), enum)
+		enumList[i] = fmt.Sprintf("    %s", strcase.ToCamel(enum))
 	}
 
-	return fmt.Sprintf("export enum %s {\n%s\n}", enumName, strings.Join(enumList, ",\n"))
+	return fmt.Sprintf("enum %s {\n%s\n}\n", enumName, strings.Join(enumList, ",\n"))
 }
