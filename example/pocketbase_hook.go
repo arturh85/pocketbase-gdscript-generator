@@ -10,7 +10,7 @@ func main() {
 	app := pocketbase.New()
 
 	pocketbase_gdscript_generator.RegisterHook(app, &pocketbase_gdscript_generator.GeneratorOptions{
-		Output: "test.ts",
+		Output: "test.gd",
 	})
 
 	if err := app.Start(); err != nil {
