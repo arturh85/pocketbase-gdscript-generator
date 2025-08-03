@@ -64,7 +64,7 @@ func (propertyType InterfacePropertyType) String() string {
 	case IptString:
 		return "String"
 	case IptNumber:
-		return "Number"
+		return "float"
 	case IptBoolean:
 		return "Boolean"
 	case IptEnum:
